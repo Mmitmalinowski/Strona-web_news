@@ -1,4 +1,4 @@
-/* style.css - Nowy, minimalistyczny wygląd */
+/* style.css - Nowy, minimalistyczny wygląd z custom-select */
 
 /* --- Ogólne style body i resetowanie --- */
 body {
@@ -31,7 +31,7 @@ header h1 {
     font-weight: 600;
 }
 
-/* --- Przyciski (Odśwież, Resetuj) --- */
+/* --- Przyciski (Odśwież, Resetuj, Zapisz, Usuń) --- */
 button {
     background-color: #007bff; /* Klasyczny niebieski */
     color: white;
@@ -78,8 +78,7 @@ main {
     align-items: center;
 }
 
-.filters-container input[type="text"],
-.filters-container select {
+.filters-container input[type="text"] {
     flex: 1; /* Sprawia, że pola rozciągają się */
     min-width: 150px; /* Minimalna szerokość pola na małych ekranach */
     padding: 10px 15px;
@@ -178,6 +177,111 @@ footer {
     box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
 }
 
+/* --- Style dla ulubionych filtrów --- */
+#favoriteFiltersSelect {
+    flex: 1; /* Rozciągnij, podobnie jak inne inputy */
+    min-width: 180px; /* Minimalna szerokość */
+    padding: 10px 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    font-size: 1em;
+    background-color: #f8f9fa; /* Jasne tło */
+}
+
+/* Styl dla przycisku zapisu filtrów */
+button#saveFilterButton {
+    background-color: #20c997; /* Jakiś inny kolor, np. zielony */
+}
+
+button#saveFilterButton:hover {
+    background-color: #17a2b8; /* Ciemniejszy zielony */
+}
+
+/* Styl dla przycisku usuwania filtrów */
+button#deleteSelectedFilterButton {
+    background-color: #fd7e14; /* Kolor ostrzegawczy, np. pomarańczowy */
+}
+
+button#deleteSelectedFilterButton:hover {
+    background-color: #e66c00;
+}
+
+/* --- NOWE STYLE DLA CUSTOM-SELECT (WIELOKROTNY WYBÓR) --- */
+.custom-select-container {
+    position: relative;
+    flex: 1; /* Rozciągnij, podobnie jak inne inputy */
+    min-width: 180px; /* Minimalna szerokość */
+}
+
+.custom-select-selected-items {
+    padding: 10px 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    font-size: 1em;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 42px; /* Wysokość dopasowana do inputów i przycisków */
+    box-sizing: border-box; /* Padding wliczony w wysokość */
+    white-space: nowrap; /* Zapobiega zawijaniu tekstu */
+    overflow: hidden;    /* Ukrywa tekst, który wykracza poza element */
+    text-overflow: ellipsis; /* Dodaje "..." na końcu ukrytego tekstu */
+    min-width: 150px; /* lub dopasuj do swoich potrzeb */
+}
+
+.custom-select-selected-items::after {
+    content: '▼'; /* Strzałka w dół */
+    font-size: 0.8em;
+    color: #666;
+    margin-left: 10px;
+}
+
+.custom-select-dropdown {
+    display: none; /* Domyślnie ukryty */
+    position: absolute;
+    top: 100%; /* Poniżej głównego pola */
+    left: 0;
+    right: 0;
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    z-index: 1000; /* Upewnij się, że jest na wierzchu */
+    max-height: 250px; /* Maksymalna wysokość rozwijanej listy */
+    overflow-y: auto; /* Przewijanie, jeśli opcji jest dużo */
+    padding: 5px 0;
+}
+
+.custom-select-dropdown.show {
+    display: block; /* Pokaż, gdy aktywny */
+}
+
+.custom-select-option {
+    display: flex;
+    align-items: center;
+    padding: 8px 15px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.custom-select-option:hover {
+    background-color: #f0f0f0;
+}
+
+.custom-select-option input[type="checkbox"] {
+    margin-right: 10px;
+    min-width: 16px; /* Zapewnij widoczność checkboxa */
+    min-height: 16px;
+}
+
+/* Style dla zaznaczonej opcji (wizualnie) */
+.custom-select-option input[type="checkbox"]:checked + span {
+    font-weight: bold;
+    color: #007bff; /* Kolor zaznaczonego tekstu */
+}
+
 /* --- Responsywność --- */
 @media (max-width: 768px) {
     header {
@@ -198,7 +302,8 @@ footer {
     }
 
     .filters-container input[type="text"],
-    .filters-container select,
+    .filters-container .custom-select-container, /* Nowa reguła dla custom-select */
+    .filters-container #favoriteFiltersSelect,
     .filters-container button {
         min-width: unset; /* Resetuje min-width */
         width: 100%; /* Pełna szerokość na małych ekranach */

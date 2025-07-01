@@ -15,9 +15,19 @@
     <main>
         <div class="filters-container">
             <input type="text" id="searchTerm" placeholder="Wyszukaj artykuły po tytule...">
-            <select id="sourceFilter">
-                <option value="all">Wszystkie źródła</option>
-                </select>
+            <div class="custom-select-container">
+                <div id="selectedSourcesDisplay" class="custom-select-selected-items">
+                    Wszystkie źródła
+                </div>
+                <div id="sourceOptionsDropdown" class="custom-select-dropdown">
+                    </div>
+            </div>
+
+            <button id="saveFilterButton" title="Zapisz bieżące filtry jako ulubione">Zapisz filtry</button>
+            <select id="favoriteFiltersSelect">
+                <option value="">Wczytaj ulubione filtry</option>
+            </select>
+            <button id="deleteSelectedFilterButton" title="Usuń zaznaczony ulubiony filtr">Usuń wybrany filtr</button>
             <button id="resetFilters">Resetuj filtry</button>
         </div>
 

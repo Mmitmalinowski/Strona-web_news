@@ -1,31 +1,47 @@
-// script.js
+// script.js - Wersja działająca tylko po stronie klienta (z publicznym proxy CORS)
+// Zmiany: Customowy rozwijany select z wielokrotnym wyborem
+
+// Publiczne proxy CORS
+const CORS_PROXY_URL = "https://corsproxy.io/?";
 
 // Lista źródeł RSS
 const FEEDS = {
     "OKO.press": "https://oko.press/feed/",
     "PAP Nauka": "https://naukawpolsce.pl/rss.xml",
     "Dziennik Gazeta Prawna": "https://www.gazetaprawna.pl/rss.xml",
-    // Polityka - usunięto, ponieważ adres RSS zwraca 404
     "wMeritum.pl": "https://wmeritum.pl/feed/",
+    "Onet Wiadomości Kraj": "http://wiadomosci.onet.pl/kraj/rss.xml",
+    "Onet Wiadomości Świat": "http://wiadomosci.onet.pl/swiat/rss.xml",
+    "Gazeta.pl Wiadomości": "http://serwisy.gazeta.pl/aliasy/rss_hp/wiadomosci.xml",
+    "Polsat News Wszystkie": "https://www.polsatnews.pl/rss/wszystkie.xml",
+    "Rzeczpospolita": "https://www.rp.pl/rss_main",
+    "Dziennik.pl": "http://rss.dziennik.pl/Dziennik-PL/",
+    "Newsweek Polska": "https://www.newsweek.pl/rss.xml",
+    "Wirtualne Media": "https://www.wirtualnemedia.pl/rss/wirtualnemedia_rss.xml",
 };
 
-// Publiczny proxy CORS do omijania ograniczeń przeglądarek
-// corsproxy.io zwraca czysty XML, nie JSON, dlatego zmieniamy sposób parsowania odpowiedzi
-const CORS_PROXY_URL = "https://corsproxy.io/?"; 
 
-// Elementy DOM (Document Object Model) - odwołania do elementów HTML
+// Elementy DOM
 const articlesContainer = document.getElementById("articlesContainer");
 const loadingMessage = document.getElementById("loadingMessage");
-const refreshButton = document.getElementById("refreshButton");
 const searchTermInput = document.getElementById("searchTerm");
-const sourceFilterSelect = document.getElementById("sourceFilter");
+// Zmienione referencje DOM dla custom-select
+const customSelectContainer = document.querySelector(".custom-select-container");
+const selectedSourcesDisplay = document.getElementById("selectedSourcesDisplay");
+const sourceOptionsDropdown = document.getElementById("sourceOptionsDropdown");
+
 const resetFiltersButton = document.getElementById("resetFilters");
 
-let allArticles = []; // Globalna zmienna do przechowywania wszystkich pobranych artykułów
+// Elementy DOM dla ulubionych filtrów
+const saveFilterButton = document.getElementById("saveFilterButton");
+const favoriteFiltersSelect = document.getElementById("favoriteFiltersSelect");
+const deleteSelectedFilterButton = document.getElementById("deleteSelectedFilterButton");
+
+let allArticles = [];
+let favoriteFilters = JSON.parse(localStorage.getItem('favoriteFilters')) || {}; // Wczytaj ulubione filtry z localStorage
+let currentSelectedSources = []; // Przechowuje aktualnie wybrane źródła w custom-select
 
 // --- Funkcje Pomocnicze ---
-
-// Funkcja do formatowania daty
 function formatDate(isoDateString) {
     const date = new Date(isoDateString);
     return date.toLocaleString('pl-PL', {
@@ -37,7 +53,6 @@ function formatDate(isoDateString) {
     });
 }
 
-// Funkcja do tworzenia karty artykułu HTML
 function createArticleCard(article) {
     const card = document.createElement("div");
     card.classList.add("article-card");
@@ -51,11 +66,10 @@ function createArticleCard(article) {
     return card;
 }
 
-// Funkcja do wyświetlania artykułów w kontenerze
 function displayArticles(articlesToDisplay) {
-    articlesContainer.innerHTML = ""; // Czyść istniejące artykuły
+    articlesContainer.innerHTML = "";
     if (articlesToDisplay.length === 0) {
-        articlesContainer.innerHTML = "<p>Brak artykułów do wyświetlenia. Spróbuj zmienić filtry lub odświeżyć.</p>";
+        articlesContainer.innerHTML = "<p>Brak artykułów do wyświetlenia. Spróbuj zmienić filtry.</p>";
     } else {
         articlesToDisplay.forEach(article => {
             articlesContainer.appendChild(createArticleCard(article));
@@ -63,139 +77,295 @@ function displayArticles(articlesToDisplay) {
     }
 }
 
-// Funkcja do aktualizowania opcji w rozwijanej liście źródeł
-function updateSourceFilterOptions() {
-    sourceFilterSelect.innerHTML = '<option value="all">Wszystkie źródła</option>'; 
+
+// --- NOWE FUNKCJE DLA CUSTOM-SELECT ---
+
+function populateSourceFilterDropdown() {
+    sourceOptionsDropdown.innerHTML = ''; // Czyścimy listę
+
+    // Dodajemy opcję "Wszystkie źródła"
+    const allOptionDiv = document.createElement('div');
+    allOptionDiv.classList.add('custom-select-option');
+    allOptionDiv.innerHTML = `
+        <input type="checkbox" id="source-all" value="all">
+        <span>Wszystkie źródła</span>
+    `;
+    sourceOptionsDropdown.appendChild(allOptionDiv);
+
+    // Dynamicznie dodajemy unikalne źródła
     const uniqueSources = new Set(allArticles.map(article => article.source));
     Array.from(uniqueSources).sort().forEach(source => {
-        const option = document.createElement("option");
-        option.value = source;
-        option.textContent = source;
-        sourceFilterSelect.appendChild(option);
+        const optionDiv = document.createElement('div');
+        optionDiv.classList.add('custom-select-option');
+        optionDiv.innerHTML = `
+            <input type="checkbox" id="source-${source.replace(/\s+/g, '-')}" value="${source}">
+            <span>${source}</span>
+        `;
+        sourceOptionsDropdown.appendChild(optionDiv);
     });
+
+    // Przywracamy zaznaczenie
+    updateSourceSelectionInDropdown();
 }
 
-// --- Główna Logika Aplikacji ---
+function updateSourceSelectionInDropdown() {
+    const checkboxes = sourceOptionsDropdown.querySelectorAll('input[type="checkbox"]');
+    
+    // Obsługa opcji "Wszystkie źródła"
+    const allCheckbox = sourceOptionsDropdown.querySelector('#source-all');
+    if (currentSelectedSources.length === 0 || currentSelectedSources.includes('all')) {
+        allCheckbox.checked = true;
+        // Odznaczamy wszystkie inne, jeśli "Wszystkie źródła" jest zaznaczone
+        checkboxes.forEach(cb => {
+            if (cb.value !== 'all') cb.checked = false;
+        });
+        selectedSourcesDisplay.textContent = "Wszystkie źródła";
+    } else {
+        allCheckbox.checked = false;
+        // Zaznaczamy odpowiednie checkboxy
+        checkboxes.forEach(cb => {
+            if (cb.value !== 'all') {
+                cb.checked = currentSelectedSources.includes(cb.value);
+            }
+        });
+        selectedSourcesDisplay.textContent = currentSelectedSources.join(', ') || "Wybierz źródła...";
+    }
 
-// Funkcja do pobierania i parsowania pojedynczego kanału RSS/Atom
+    // Upewnij się, że tekst w displayu jest aktualny
+    if (currentSelectedSources.length === 0) {
+        selectedSourcesDisplay.textContent = "Wszystkie źródła";
+    } else if (currentSelectedSources.includes("all")) {
+        selectedSourcesDisplay.textContent = "Wszystkie źródła";
+    } else {
+        selectedSourcesDisplay.textContent = currentSelectedSources.join(', ');
+    }
+}
+
+
+// Obsługa kliknięcia na element listy rozwijanej
+sourceOptionsDropdown.addEventListener('change', (event) => {
+    const clickedCheckbox = event.target;
+
+    if (clickedCheckbox.id === 'source-all') {
+        if (clickedCheckbox.checked) {
+            currentSelectedSources = ['all']; // Jeśli "Wszystkie" zaznaczone, usuń inne
+        } else {
+            // Jeśli "Wszystkie" odznaczone, a to jedyne zaznaczone, ustaw na pusto
+            // Możesz też dodać logikę, by domyślnie zaznaczać "Wszystkie" jeśli nic nie wybrano
+            currentSelectedSources = []; 
+        }
+    } else {
+        if (clickedCheckbox.checked) {
+            currentSelectedSources = currentSelectedSources.filter(s => s !== 'all'); // Usuń "all", jeśli wybrano inne
+            currentSelectedSources.push(clickedCheckbox.value);
+        } else {
+            currentSelectedSources = currentSelectedSources.filter(source => source !== clickedCheckbox.value);
+        }
+    }
+    
+    // Jeśli po zmianie nie wybrano żadnych konkretnych źródeł (i nie było "all"), ustaw na "all"
+    if (currentSelectedSources.length === 0 && clickedCheckbox.id !== 'source-all') {
+        currentSelectedSources = ['all'];
+    }
+
+    updateSourceSelectionInDropdown();
+    applyFilters();
+});
+
+// Rozwijanie/zwijanie listy po kliknięciu na pole display
+selectedSourcesDisplay.addEventListener('click', () => {
+    sourceOptionsDropdown.classList.toggle('show');
+});
+
+// Zwijanie listy po kliknięciu poza nią
+document.addEventListener('click', (event) => {
+    if (!customSelectContainer.contains(event.target)) {
+        sourceOptionsDropdown.classList.remove('show');
+    }
+});
+
+
+// --- Główna Logika Aplikacji (Zmiany do działania z CORS Proxy) ---
+
+// Funkcja do pobierania i parsowania pojedynczego kanału RSS
 async function fetchAndParseFeed(sourceName, feedUrl) {
     try {
-        console.log(`Pobieram RSS z: ${sourceName} (${feedUrl})`);
-        loadingMessage.textContent = `Pobieram newsy z ${sourceName}...`;
-
-        const response = await fetch(`${CORS_PROXY_URL}${encodeURIComponent(feedUrl)}`);
+        const response = await fetch(CORS_PROXY_URL + encodeURIComponent(feedUrl));
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`HTTP error! status: ${response.status} from ${feedUrl}`);
         }
-        
-        // Ważna zmiana: Odczytujemy odpowiedź jako tekst, a nie JSON
-        const rawXmlContent = await response.text(); 
-        
-        // Logowanie zawartości XML dla celów debugowania
-        console.log(`Zawartość XML dla ${sourceName}:`, rawXmlContent.substring(0, 500)); 
-
+        const xmlText = await response.text();
         const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(rawXmlContent, "application/xml");
+        const xmlDoc = parser.parseFromString(xmlText, "application/xml");
 
-        // Sprawdzamy, czy kanał jest w formacie RSS (<item>) czy Atom (<entry>)
-        let items = xmlDoc.querySelectorAll("item");
-        if (items.length === 0) { 
-            items = xmlDoc.querySelectorAll("entry");
-        }
-        
+        const items = xmlDoc.querySelectorAll("item, entry"); // Obsługa RSS i Atom
         const articles = [];
 
         items.forEach(item => {
-            let title = item.querySelector("title")?.textContent || "Brak tytułu";
-            let link = item.querySelector("link[href]")?.getAttribute("href") || 
-                       item.querySelector("link")?.textContent || ""; 
-            
-            let pubDate = item.querySelector("pubDate")?.textContent || 
-                          item.querySelector("published")?.textContent || 
-                          item.querySelector("updated")?.textContent || 
-                          new Date().toISOString(); 
+            const title = item.querySelector("title")?.textContent || "Brak tytułu";
+            let link = item.querySelector("link")?.textContent || item.querySelector("link[rel='alternate']")?.getAttribute('href') || "";
+            const pubDate = item.querySelector("pubDate")?.textContent || item.querySelector("published")?.textContent || new Date().toISOString();
 
-            if (!link && item.querySelector("guid")?.textContent?.startsWith('http')) {
-                link = item.querySelector("guid").textContent;
-            }
+            // Specjalna obsługa dla Onet (i innych, które dodają stopki)
+            let cleanedTitle = title.replace(/Artykuł <a [^>]*>.*?<\/a> pochodzi z serwisu <a [^>]*>.*?<\/a>\.$/i, '')
+                                     .replace(/Artykuł (.*?) pochodzi z serwisu (.*?)\.$/i, '$1')
+                                     .trim();
 
-            if (!link || !link.startsWith('http')) {
-                console.warn(`Pominięto artykuł z ${sourceName} z powodu nieprawidłowego lub brakującego linku:`, title, link);
-                return; 
-            }
-
-            title = title.replace(/Artykuł <a [^>]*>.*?<\/a> pochodzi z serwisu <a [^>]*>.*?<\/a>\.$/i, '')
-                         .replace(/Artykuł (.*?) pochodzi z serwisu (.*?)\.$/i, '$1') 
-                         .trim();
 
             articles.push({
-                title: title,
+                title: cleanedTitle,
                 link: link,
                 source: sourceName,
                 pubDate: pubDate
             });
         });
-        console.log(`Pobrano ${articles.length} artykułów z ${sourceName}.`);
         return articles;
-
     } catch (error) {
         console.error(`Błąd podczas pobierania lub parsowania RSS z ${sourceName}:`, error);
-        return []; 
+        return [];
     }
 }
 
-// Funkcja do pobierania wszystkich newsów ze zdefiniowanych źródeł
+// Funkcja do pobierania wszystkich newsów
 async function fetchAllNews() {
-    refreshButton.disabled = true; 
-    loadingMessage.style.display = "block"; 
-    articlesContainer.innerHTML = ""; 
-    loadingMessage.textContent = "Pobieram newsy...";
+    loadingMessage.style.display = "block";
+    articlesContainer.innerHTML = ""; // Wyczyść poprzednie artykuły
+    loadingMessage.textContent = "Pobieram najnowsze newsy...";
 
-    const fetchedArticles = [];
-    for (const sourceName in FEEDS) {
-        const url = FEEDS[sourceName];
-        const articlesFromFeed = await fetchAndParseFeed(sourceName, url);
-        fetchedArticles.push(...articlesFromFeed);
+    allArticles = []; // Resetuj listę artykułów
+
+    const fetchPromises = Object.entries(FEEDS).map(([sourceName, url]) =>
+        fetchAndParseFeed(sourceName, url)
+    );
+
+    try {
+        const results = await Promise.all(fetchPromises);
+        results.forEach(articles => {
+            allArticles.push(...articles);
+        });
+
+        // Usuń duplikaty (na podstawie linku)
+        const uniqueArticles = [];
+        const seenLinks = new Set();
+        allArticles.forEach(article => {
+            if (!seenLinks.has(article.link)) {
+                uniqueArticles.push(article);
+                seenLinks.add(article.link);
+            }
+        });
+        allArticles = uniqueArticles;
+
+
+        // Sortowanie po dacie (od najnowszych)
+        allArticles.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+
+        loadingMessage.style.display = "none";
+
+        populateSourceFilterDropdown(); // Teraz używamy nowej funkcji do zapełniania custom-select
+        applyFilters(); // Zastosuj filtry po pobraniu i posortowaniu
+        console.log(`Pobrano i przetworzono ${allArticles.length} unikalnych artykułów.`);
+
+    } catch (error) {
+        console.error("Błąd podczas pobierania wszystkich newsów:", error);
+        loadingMessage.textContent = "Wystąpił błąd podczas ładowania newsów. Spróbuj później.";
     }
-
-    allArticles = fetchedArticles.sort((a, b) => {
-        const dateA = new Date(a.pubDate);
-        const dateB = new Date(b.pubDate);
-        return dateB - dateA; 
-    });
-
-    loadingMessage.style.display = "none"; 
-    refreshButton.disabled = false; 
-
-    updateSourceFilterOptions(); 
-    applyFilters(); 
 }
 
-// Funkcja do stosowania filtrów na liście artykułów
+// Funkcja do stosowania filtrów na liście artykułów (zmodyfikowana dla custom-select)
 function applyFilters() {
     const searchTerm = searchTermInput.value.toLowerCase();
-    const selectedSource = sourceFilterSelect.value;
+    
+    // Pobierz aktualnie wybrane źródła z globalnej zmiennej currentSelectedSources
+    const selectedSources = currentSelectedSources;
 
     const filtered = allArticles.filter(article => {
-        const titleMatch = article.title.toLowerCase().includes(searchTerm);
-        const sourceMatch = (selectedSource === "all" || article.source === selectedSource);
-        return titleMatch && sourceMatch;
+        const matchesSearchTerm = searchTerm === "" || article.title.toLowerCase().includes(searchTerm);
+        
+        // Jeśli wybrano "all" LUB wybrano konkretne źródła, które pasują do artykułu
+        const matchesSource = selectedSources.includes("all") || selectedSources.includes(article.source);
+        
+        return matchesSearchTerm && matchesSource;
     });
-
     displayArticles(filtered);
 }
 
-// Funkcja do resetowania wszystkich filtrów do wartości domyślnych
 function resetFilters() {
     searchTermInput.value = "";
-    sourceFilterSelect.value = "all";
-    applyFilters();
+    currentSelectedSources = ['all']; // Ustawiamy "Wszystkie źródła" jako domyślne
+    updateSourceSelectionInDropdown(); // Aktualizujemy wygląd custom-select
+    applyFilters(); // Stosuje filtry
 }
 
-// --- Nasłuchiwanie Zdarzeń (Event Listeners) ---
+// --- NOWE FUNKCJE DLA ULUBIONYCH FILTRÓW (ZMODYFIKOWANE DLA CUSTOM-SELECT) ---
 
-document.addEventListener("DOMContentLoaded", fetchAllNews);
-refreshButton.addEventListener("click", fetchAllNews);
+function saveFavoriteFilters() {
+    const filterName = prompt("Podaj nazwę dla tych filtrów:");
+    if (filterName && filterName.trim() !== "") {
+        const currentFilters = {
+            searchTerm: searchTermInput.value,
+            sourceFilters: [...currentSelectedSources] // Zapisz kopię tablicy wybranych źródeł
+        };
+        favoriteFilters[filterName.trim()] = currentFilters;
+        localStorage.setItem('favoriteFilters', JSON.stringify(favoriteFilters));
+        populateFavoriteFiltersSelect();
+        alert(`Filtry "${filterName}" zostały zapisane!`);
+    } else if (filterName !== null) {
+        alert("Nazwa filtru nie może być pusta.");
+    }
+}
+
+function loadFavoriteFilters() {
+    const selectedFilterName = favoriteFiltersSelect.value;
+    if (selectedFilterName && selectedFilterName !== "") {
+        const filters = favoriteFilters[selectedFilterName];
+        if (filters) {
+            searchTermInput.value = filters.searchTerm;
+            currentSelectedSources = filters.sourceFilters || ['all']; // Ustawiamy wybrane źródła
+            
+            updateSourceSelectionInDropdown(); // Aktualizujemy wygląd custom-select
+            applyFilters(); // Stosuje filtry
+            alert(`Filtry "${selectedFilterName}" zostały wczytane!`);
+        }
+    }
+}
+
+function deleteSelectedFavoriteFilter() {
+    const selectedFilterName = favoriteFiltersSelect.value;
+    if (selectedFilterName && selectedFilterName !== "") {
+        if (confirm(`Czy na pewno chcesz usunąć filtr "${selectedFilterName}"?`)) {
+            delete favoriteFilters[selectedFilterName];
+            localStorage.setItem('favoriteFilters', JSON.stringify(favoriteFilters));
+            populateFavoriteFiltersSelect();
+            alert(`Filtr "${selectedFilterName}" został usunięty.`);
+            resetFilters(); // Zresetuj filtry po usunięciu
+        }
+    } else {
+        alert("Wybierz filtr do usunięcia.");
+    }
+}
+
+function populateFavoriteFiltersSelect() {
+    favoriteFiltersSelect.innerHTML = '<option value="">Wczytaj ulubione filtry</option>';
+    for (const name in favoriteFilters) {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        favoriteFiltersSelect.appendChild(option);
+    }
+}
+
+// --- Nasłuchiwanie Zdarzeń ---
+
+document.addEventListener("DOMContentLoaded", () => {
+    fetchAllNews(); // Ładuje newsy od razu
+    populateFavoriteFiltersSelect(); // Wczytuje ulubione filtry przy starcie
+    currentSelectedSources = ['all']; // Domyślnie zaznacz "Wszystkie źródła"
+});
+
 searchTermInput.addEventListener("input", applyFilters);
-sourceFilterSelect.addEventListener("change", applyFilters);
 resetFiltersButton.addEventListener("click", resetFilters);
+
+// Nasłuchiwanie dla ulubionych filtrów
+saveFilterButton.addEventListener("click", saveFavoriteFilters);
+favoriteFiltersSelect.addEventListener("change", loadFavoriteFilters);
+deleteSelectedFilterButton.addEventListener("click", deleteSelectedFavoriteFilter);
