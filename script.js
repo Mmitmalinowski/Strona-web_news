@@ -1,3 +1,4 @@
+
 // script.js - Wersja z wieloma słowami kluczowymi, custom-select i oznaczaniem przeczytanych
 // Zmiany: Customowy rozwijany select z wielokrotnym wyborem,
 // możliwość dodawania wielu słów kluczowych do filtrowania,
