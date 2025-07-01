@@ -1,5 +1,6 @@
-// script.js - Wersja działająca tylko po stronie klienta (z publicznym proxy CORS)
-// Zmiany: Customowy rozwijany select z wielokrotnym wyborem
+// script.js - Wersja z wieloma słowami kluczowymi i custom-select
+// Zmiany: Customowy rozwijany select z wielokrotnym wyborem,
+// oraz możliwość dodawania wielu słów kluczowych do filtrowania.
 
 // Publiczne proxy CORS
 const CORS_PROXY_URL = "https://corsproxy.io/?";
@@ -25,6 +26,9 @@ const FEEDS = {
 const articlesContainer = document.getElementById("articlesContainer");
 const loadingMessage = document.getElementById("loadingMessage");
 const searchTermInput = document.getElementById("searchTerm");
+const addKeywordButton = document.getElementById("addKeywordButton"); // Nowy przycisk
+const activeKeywordsContainer = document.getElementById("activeKeywordsContainer"); // Nowy kontener
+
 // Zmienione referencje DOM dla custom-select
 const customSelectContainer = document.querySelector(".custom-select-container");
 const selectedSourcesDisplay = document.getElementById("selectedSourcesDisplay");
@@ -40,6 +44,7 @@ const deleteSelectedFilterButton = document.getElementById("deleteSelectedFilter
 let allArticles = [];
 let favoriteFilters = JSON.parse(localStorage.getItem('favoriteFilters')) || {}; // Wczytaj ulubione filtry z localStorage
 let currentSelectedSources = []; // Przechowuje aktualnie wybrane źródła w custom-select
+let activeKeywords = []; // NOWA ZMIENNA: Przechowuje aktywne słowa kluczowe
 
 // --- Funkcje Pomocnicze ---
 function formatDate(isoDateString) {
@@ -78,7 +83,51 @@ function displayArticles(articlesToDisplay) {
 }
 
 
-// --- NOWE FUNKCJE DLA CUSTOM-SELECT ---
+// --- NOWE FUNKCJE DLA SŁÓW KLUCZOWYCH ---
+
+function addKeyword() {
+    const keyword = searchTermInput.value.trim();
+    if (keyword && !activeKeywords.includes(keyword)) {
+        activeKeywords.push(keyword);
+        searchTermInput.value = ''; // Wyczyść pole po dodaniu
+        updateActiveKeywordsDisplay();
+        applyFilters();
+    }
+}
+
+function removeKeyword(keywordToRemove) {
+    activeKeywords = activeKeywords.filter(keyword => keyword !== keywordToRemove);
+    updateActiveKeywordsDisplay();
+    applyFilters();
+}
+
+function updateActiveKeywordsDisplay() {
+    activeKeywordsContainer.innerHTML = ''; // Czyścimy kontener
+    if (activeKeywords.length === 0) {
+        activeKeywordsContainer.innerHTML = '<span style="color: #888;">Brak aktywnych słów kluczowych.</span>';
+    } else {
+        activeKeywords.forEach(keyword => {
+            const tag = document.createElement('div');
+            tag.classList.add('keyword-tag');
+            tag.innerHTML = `
+                <span>${keyword}</span>
+                <button class="remove-keyword" data-keyword="${keyword}">x</button>
+            `;
+            activeKeywordsContainer.appendChild(tag);
+        });
+    }
+}
+
+// Delegowanie zdarzeń dla przycisków usuwania słów kluczowych
+activeKeywordsContainer.addEventListener('click', (event) => {
+    if (event.target.classList.contains('remove-keyword')) {
+        const keywordToRemove = event.target.dataset.keyword;
+        removeKeyword(keywordToRemove);
+    }
+});
+
+
+// --- NOWE FUNKCJE DLA CUSTOM-SELECT (bez zmian w tej sekcji) ---
 
 function populateSourceFilterDropdown() {
     sourceOptionsDropdown.innerHTML = ''; // Czyścimy listę
@@ -128,16 +177,8 @@ function updateSourceSelectionInDropdown() {
                 cb.checked = currentSelectedSources.includes(cb.value);
             }
         });
+        // Upewnij się, że tekst w displayu jest aktualny
         selectedSourcesDisplay.textContent = currentSelectedSources.join(', ') || "Wybierz źródła...";
-    }
-
-    // Upewnij się, że tekst w displayu jest aktualny
-    if (currentSelectedSources.length === 0) {
-        selectedSourcesDisplay.textContent = "Wszystkie źródła";
-    } else if (currentSelectedSources.includes("all")) {
-        selectedSourcesDisplay.textContent = "Wszystkie źródła";
-    } else {
-        selectedSourcesDisplay.textContent = currentSelectedSources.join(', ');
     }
 }
 
@@ -151,7 +192,6 @@ sourceOptionsDropdown.addEventListener('change', (event) => {
             currentSelectedSources = ['all']; // Jeśli "Wszystkie" zaznaczone, usuń inne
         } else {
             // Jeśli "Wszystkie" odznaczone, a to jedyne zaznaczone, ustaw na pusto
-            // Możesz też dodać logikę, by domyślnie zaznaczać "Wszystkie" jeśli nic nie wybrano
             currentSelectedSources = []; 
         }
     } else {
@@ -271,15 +311,24 @@ async function fetchAllNews() {
     }
 }
 
-// Funkcja do stosowania filtrów na liście artykułów (zmodyfikowana dla custom-select)
+// Funkcja do stosowania filtrów na liście artykułów (zmodyfikowana dla wielu słów kluczowych)
 function applyFilters() {
-    const searchTerm = searchTermInput.value.toLowerCase();
+    // Słowa kluczowe są teraz w tablicy activeKeywords
+    const termsToMatch = activeKeywords.map(term => term.toLowerCase());
     
     // Pobierz aktualnie wybrane źródła z globalnej zmiennej currentSelectedSources
     const selectedSources = currentSelectedSources;
 
     const filtered = allArticles.filter(article => {
-        const matchesSearchTerm = searchTerm === "" || article.title.toLowerCase().includes(searchTerm);
+        let matchesSearchTerm = true;
+        if (termsToMatch.length > 0) {
+            // Artykuł pasuje, jeśli zawiera COKOLWIEK z listy słów kluczowych
+            matchesSearchTerm = termsToMatch.some(term => article.title.toLowerCase().includes(term));
+        } else if (searchTermInput.value.trim() !== '') {
+            // Jeśli pole input nie jest puste, ale nie dodano słowa do activeKeywords,
+            // to filtruj po tym co jest w input (na wypadek, gdyby ktoś nie kliknął "Dodaj")
+            matchesSearchTerm = article.title.toLowerCase().includes(searchTermInput.value.toLowerCase().trim());
+        }
         
         // Jeśli wybrano "all" LUB wybrano konkretne źródła, które pasują do artykułu
         const matchesSource = selectedSources.includes("all") || selectedSources.includes(article.source);
@@ -291,19 +340,22 @@ function applyFilters() {
 
 function resetFilters() {
     searchTermInput.value = "";
+    activeKeywords = []; // Resetuj aktywne słowa kluczowe
+    updateActiveKeywordsDisplay(); // Zaktualizuj wyświetlanie
     currentSelectedSources = ['all']; // Ustawiamy "Wszystkie źródła" jako domyślne
     updateSourceSelectionInDropdown(); // Aktualizujemy wygląd custom-select
     applyFilters(); // Stosuje filtry
 }
 
-// --- NOWE FUNKCJE DLA ULUBIONYCH FILTRÓW (ZMODYFIKOWANE DLA CUSTOM-SELECT) ---
+// --- NOWE FUNKCJE DLA ULUBIONYCH FILTRÓW (ZMODYFIKOWANE DLA WIELU SŁÓW KLUCZOWYCH) ---
 
 function saveFavoriteFilters() {
     const filterName = prompt("Podaj nazwę dla tych filtrów:");
     if (filterName && filterName.trim() !== "") {
         const currentFilters = {
-            searchTerm: searchTermInput.value,
-            sourceFilters: [...currentSelectedSources] // Zapisz kopię tablicy wybranych źródeł
+            // Zapisujemy activeKeywords (tablicę) zamiast searchTermInput.value
+            searchTerm: [...activeKeywords], // Zapisz kopię tablicy aktywnych słów kluczowych
+            sourceFilters: [...currentSelectedSources] 
         };
         favoriteFilters[filterName.trim()] = currentFilters;
         localStorage.setItem('favoriteFilters', JSON.stringify(favoriteFilters));
@@ -319,7 +371,11 @@ function loadFavoriteFilters() {
     if (selectedFilterName && selectedFilterName !== "") {
         const filters = favoriteFilters[selectedFilterName];
         if (filters) {
-            searchTermInput.value = filters.searchTerm;
+            // Wczytujemy tablicę słów kluczowych
+            activeKeywords = filters.searchTerm || []; // Ustawiamy aktywne słowa kluczowe
+            searchTermInput.value = ''; // Wyczyść pole input, bo słowa są w tagach
+            updateActiveKeywordsDisplay(); // Zaktualizuj wyświetlanie tagów
+
             currentSelectedSources = filters.sourceFilters || ['all']; // Ustawiamy wybrane źródła
             
             updateSourceSelectionInDropdown(); // Aktualizujemy wygląd custom-select
@@ -360,9 +416,17 @@ document.addEventListener("DOMContentLoaded", () => {
     fetchAllNews(); // Ładuje newsy od razu
     populateFavoriteFiltersSelect(); // Wczytuje ulubione filtry przy starcie
     currentSelectedSources = ['all']; // Domyślnie zaznacz "Wszystkie źródła"
+    updateActiveKeywordsDisplay(); // Inicjalizuj wyświetlanie słów kluczowych
 });
 
-searchTermInput.addEventListener("input", applyFilters);
+// Zmienione nasłuchiwanie dla pola wyszukiwania i nowego przycisku
+searchTermInput.addEventListener("keypress", (event) => {
+    if (event.key === "Enter") {
+        addKeyword(); // Dodaj słowo po naciśnięciu Enter
+    }
+});
+addKeywordButton.addEventListener("click", addKeyword); // Dodaj słowo po kliknięciu przycisku
+
 resetFiltersButton.addEventListener("click", resetFilters);
 
 // Nasłuchiwanie dla ulubionych filtrów

@@ -14,7 +14,12 @@
 
     <main>
         <div class="filters-container">
-            <input type="text" id="searchTerm" placeholder="Wyszukaj artykuły po tytule...">
+            <div style="display: flex; gap: 10px; width: 100%;">
+                <input type="text" id="searchTerm" placeholder="Wyszukaj artykuły po tytule...">
+                <button id="addKeywordButton">Dodaj słowo</button>
+            </div>
+            <div id="activeKeywordsContainer" class="active-keywords-container">
+                </div>
             <div class="custom-select-container">
                 <div id="selectedSourcesDisplay" class="custom-select-selected-items">
                     Wszystkie źródła

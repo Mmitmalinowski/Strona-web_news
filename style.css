@@ -73,10 +73,20 @@ main {
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     display: flex;
-    gap: 15px; /* Odstęp między elementami filtru */
-    flex-wrap: wrap; /* Pozwala elementom zawijać się */
-    align-items: center;
+    /* Zmieniamy flex-direction na column, aby elementy były ułożone w kolumnie na małych ekranach,
+       ale użyjemy wewnątrz divów, aby zachować flexbox dla inputa i przycisku "Dodaj słowo" */
+    flex-direction: column; 
+    gap: 15px; /* Odstęp między elementami filtru (rządami) */
+    align-items: flex-start; /* Elementy wyrównane do lewej */
 }
+
+/* Kontener dla inputa wyszukiwania i przycisku "Dodaj słowo" */
+.filters-container > div:first-child {
+    display: flex;
+    gap: 10px; /* Odstęp między inputem a przyciskiem */
+    width: 100%; /* Rozciągnij na całą szerokość rodzica */
+}
+
 
 .filters-container input[type="text"] {
     flex: 1; /* Sprawia, że pola rozciągają się */
@@ -282,6 +292,61 @@ button#deleteSelectedFilterButton:hover {
     color: #007bff; /* Kolor zaznaczonego tekstu */
 }
 
+/* --- NOWE STYLE DLA AKTYWNYCH SŁÓW KLUCZOWYCH --- */
+.active-keywords-container {
+    display: flex;
+    flex-wrap: wrap; /* Pozwala tagom zawijać się do nowej linii */
+    gap: 8px; /* Odstęp między tagami */
+    /* margin-top: 10px; */ /* Usuwamy, bo filters-container ma już gap */
+    padding: 5px;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    background-color: #f8f9fa;
+    min-height: 40px; /* Minimalna wysokość, nawet jeśli nie ma tagów */
+    align-items: center; /* Wyśrodkowanie tagów w pionie */
+    width: 100%; /* Rozciągnij na całą szerokość rodzica */
+    box-sizing: border-box; /* Padding i border wliczane w szerokość */
+}
+
+.keyword-tag {
+    background-color: #007bff; /* Kolor tła tagu */
+    color: white;
+    padding: 6px 10px;
+    border-radius: 20px; /* Zaokrąglone rogi dla wyglądu "tagu" */
+    display: flex;
+    align-items: center;
+    font-size: 0.9em;
+    white-space: nowrap; /* Zapobiega zawijaniu tekstu w tagu */
+}
+
+.keyword-tag .remove-keyword {
+    background-color: rgba(255, 255, 255, 0.3); /* Lekko przezroczyste tło dla X */
+    color: white;
+    border: none;
+    border-radius: 50%; /* Okrągły przycisk X */
+    width: 20px;
+    height: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 8px;
+    cursor: pointer;
+    font-size: 0.8em;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+}
+
+.keyword-tag .remove-keyword:hover {
+    background-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Dostosowanie przycisku "Dodaj słowo" */
+button#addKeywordButton {
+    flex-shrink: 0; /* Zapobiega zmniejszaniu się przycisku */
+    padding: 10px 15px; /* Dopasuj padding do innych przycisków/inputów */
+}
+
+
 /* --- Responsywność --- */
 @media (max-width: 768px) {
     header {
@@ -297,6 +362,12 @@ button#deleteSelectedFilterButton:hover {
     }
     
     .filters-container {
+        /* Już ustawione na column, więc nie trzeba zmieniać */
+        /* flex-direction: column; */
+        gap: 10px;
+    }
+
+    .filters-container > div:first-child { /* Kontener inputa i przycisku */
         flex-direction: column;
         gap: 10px;
     }
@@ -304,7 +375,10 @@ button#deleteSelectedFilterButton:hover {
     .filters-container input[type="text"],
     .filters-container .custom-select-container, /* Nowa reguła dla custom-select */
     .filters-container #favoriteFiltersSelect,
-    .filters-container button {
+    .filters-container button,
+    button#addKeywordButton, /* Dodajemy nowy przycisk */
+    .active-keywords-container /* Dodajemy nowy kontener słów kluczowych */
+    {
         min-width: unset; /* Resetuje min-width */
         width: 100%; /* Pełna szerokość na małych ekranach */
     }
