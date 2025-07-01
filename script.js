@@ -8,20 +8,18 @@
 const CORS_PROXY_URL = "https://corsproxy.io/?";
 
 // Lista źródeł RSS
-const FEEDS = {
-    "OKO.press": "https://oko.press/feed/",
-    "PAP Nauka": "https://naukawpolsce.pl/rss.xml",
-    "Dziennik Gazeta Prawna": "https://www.gazetaprawna.pl/rss.xml",
-    "wMeritum.pl": "https://wmeritum.pl/feed/",
-    // "Onet Wiadomości Kraj": "http://wiadomosci.onet.pl/kraj/rss.xml", // Zakomentowane, bo adres nie działał
-    // "Onet Wiadomości Świat": "http://wiadomosci.onet.pl/swiat/rss.xml", // Zakomentowane, bo adres nie działał
-    "Gazeta.pl Wiadomości": "http://serwisy.gazeta.pl/aliasy/rss_hp/wiadomosci.xml",
-    "Polsat News Wszystkie": "https://www.polsatnews.pl/rss/wszystkie.xml",
-    "Rzeczpospolita": "https://www.rp.pl/rss_main",
-    "Dziennik.pl": "http://rss.dziennik.pl/Dziennik-PL/",
-    "Newsweek Polska": "https://www.newsweek.pl/rss.xml",
-    "Wirtualne Media": "https://www.wirtualnemedia.pl/rss/wirtualnemedia_rss.xml",
-};
+const newsSources = [
+    { name: "Polsat News Wszystkie", url: "https://cors-anywhere.herokuapp.com/https://www.polsatnews.pl/rss/wszystkie.xml" },
+    { name: "Rzeczpospolita", url: "https://cors-anywhere.herokuapp.com/https://www.rp.pl/rss_main" },
+    { name: "Dziennik Gazeta Prawna", url: "https://cors-anywhere.herokuapp.com/https://www.gazetaprawna.pl/rss.xml" },
+    { name: "Newsweek Polska", url: "https://cors-anywhere.herokuapp.com/https://www.newsweek.pl/rss.xml" },
+    { name: "Gazeta.pl Wiadomości", url: "https://cors-anywhere.herokuapp.com/http://serwisy.gazeta.pl/aliasy/rss_hp/wiadomosci.xml" },
+    { name: "OKO.press", url: "https://cors-anywhere.herokuapp.com/https://oko.press/feed/" },
+    { name: "wMeritum.pl", url: "https://cors-anywhere.herokuapp.com/https://wmeritum.pl/feed/" },
+    { name: "Dziennik.pl", url: "https://cors-anywhere.herokuapp.com/http://rss.dziennik.pl/Dziennik-PL/" },
+    { name: "PAP Nauka", url: "https://cors-anywhere.herokuapp.com/https://naukawpolsce.pl/rss.xml" },
+    { name: "Wirtualne Media", url: "https://cors-anywhere.herokuapp.com/https://www.wirtualnemedia.pl/rss/wirtualnemedia_rss.xml" },
+];
 
 
 // Elementy DOM
