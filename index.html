@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Czytnik RSS</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Twój Czytnik RSS</h1>
+        <button id="refreshButton">Odśwież newsy</button>
+    </header>
+
+    <main>
+        <div class="filters-container">
+            <input type="text" id="searchTerm" placeholder="Wyszukaj artykuły po tytule...">
+            <select id="sourceFilter">
+                <option value="all">Wszystkie źródła</option>
+                </select>
+            <button id="resetFilters">Resetuj filtry</button>
+        </div>
+
+        <p id="loadingMessage">Pobieram newsy...</p>
+        <div id="articlesContainer">
+            </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Twój Czytnik RSS. Wszystkie prawa zastrzeżone.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
