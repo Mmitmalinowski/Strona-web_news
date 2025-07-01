@@ -1,4 +1,4 @@
-/* style.css - Nowy, minimalistyczny wygląd z custom-select */
+/* style.css - Wersja z usprawnionym układem filtrów */
 
 /* --- Ogólne style body i resetowanie --- */
 body {
@@ -31,79 +31,315 @@ header h1 {
     font-weight: 600;
 }
 
-/* --- Przyciski (Odśwież, Resetuj, Zapisz, Usuń) --- */
-button {
-    background-color: #007bff; /* Klasyczny niebieski */
-    color: white;
+/* --- Przyciski (Ogólne style i modyfikatory) --- */
+.action-button {
     border: none;
-    padding: 10px 20px;
+    padding: 10px 15px;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 1em;
+    font-size: 0.95em;
     transition: background-color 0.3s ease, transform 0.2s ease;
     flex-shrink: 0; /* Zapobiega zmniejszaniu się przycisku */
 }
 
-button:hover {
-    background-color: #0056b3;
+.action-button:hover {
     transform: translateY(-2px);
 }
 
-button:disabled {
+.action-button:disabled {
     background-color: #cccccc;
     cursor: not-allowed;
     transform: none;
 }
 
+/* Kolory przycisków */
+.primary-button { background-color: #007bff; color: white; }
+.primary-button:hover { background-color: #0056b3; }
+
+.secondary-button { background-color: #6c757d; color: white; }
+.secondary-button:hover { background-color: #5a6268; }
+
+.success-button { background-color: #28a745; color: white; }
+.success-button:hover { background-color: #218838; }
+
+.danger-button { background-color: #dc3545; color: white; }
+.danger-button:hover { background-color: #c82333; }
+
+.warning-button { background-color: #ffc107; color: #333; }
+.warning-button:hover { background-color: #e0a800; }
+
+/* Domyślny styl dla przycisku w headerze */
+header button {
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.95em;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    flex-shrink: 0;
+    background-color: #007bff; /* Klasyczny niebieski */
+    color: white;
+}
+header button:hover {
+    transform: translateY(-2px);
+    background-color: #0056b3;
+}
+
+
 /* --- Kontener główny (main) --- */
 main {
     flex-grow: 1; /* Pozwala main zająć dostępną przestrzeń */
     padding: 30px 20px;
-    max-width: 900px; /* Maksymalna szerokość treści */
+    max-width: 1000px; /* Zwiększona maksymalna szerokość treści */
     margin: 0 auto; /* Wyśrodkowanie */
     display: flex;
     flex-direction: column;
     gap: 25px; /* Odstęp między filtrami a artykułami */
 }
 
-/* --- Kontener filtrów --- */
+/* --- Kontener filtrów (główny wrapper) --- */
 .filters-container {
     background-color: #ffffff;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     display: flex;
-    /* Zmieniamy flex-direction na column, aby elementy były ułożone w kolumnie na małych ekranach,
-       ale użyjemy wewnątrz divów, aby zachować flexbox dla inputa i przycisku "Dodaj słowo" */
-    flex-direction: column; 
-    gap: 15px; /* Odstęp między elementami filtru (rządami) */
-    align-items: flex-start; /* Elementy wyrównane do lewej */
+    flex-direction: column; /* Ułóż główne rzędy w kolumnę */
+    gap: 20px; /* Odstęp między rzędami */
 }
 
-/* Kontener dla inputa wyszukiwania i przycisku "Dodaj słowo" */
-.filters-container > div:first-child {
+/* Nowe style dla górnego rzędu filtrów */
+.top-filters-row {
     display: flex;
-    gap: 10px; /* Odstęp między inputem a przyciskiem */
-    width: 100%; /* Rozciągnij na całą szerokość rodzica */
+    flex-wrap: wrap; /* Pozwól sekcjom w rzędzie zawijać się */
+    gap: 20px; /* Odstęp między sekcjami w rzędzie */
+    justify-content: space-between; /* Rozłóż sekcje równomiernie */
+    align-items: flex-start; /* Wyrównaj do góry */
+}
+
+/* Styl dla każdej głównej sekcji filtrów */
+.filter-section {
+    display: flex;
+    flex-direction: column; /* Elementy w sekcji jeden pod drugim */
+    gap: 10px; /* Odstęp między elementami w sekcji */
+    padding: 15px;
+    border: 1px solid #e9ecef; /* Lekka ramka */
+    border-radius: 8px;
+    background-color: #fcfcfc;
+    /* Usunięto ogólne flex: 1 i min-width, szerokości kontrolowane przez specyficzne reguły */
+}
+
+.filter-section label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 5px; /* Odstęp pod labelem */
 }
 
 
-.filters-container input[type="text"] {
-    flex: 1; /* Sprawia, że pola rozciągają się */
-    min-width: 150px; /* Minimalna szerokość pola na małych ekranach */
+/* --- Specyficzne style dla sekcji źródeł (w górnym rzędzie) --- */
+.source-filter-section {
+    flex-basis: 250px; /* Przywracamy nieco większą, ale nadal rozsądną szerokość */
+    flex-grow: 1; /* Pozwól im się trochę rozciągnąć, jeśli jest miejsce */
+    flex-shrink: 1;
+}
+.source-filter-section label {
+    margin-bottom: 0; /* Bo custom-select jest tuż pod */
+}
+
+
+/* --- Specyficzne style dla sekcji słów kluczowych (w górnym rzędzie) --- */
+.keyword-filter-section {
+    flex-basis: 400px; /* Przywracamy nieco większą, ale nadal rozsądną szerokość */
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.keyword-input-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.keyword-input-group input[type="text"] {
+    flex-grow: 1; /* Pole tekstowe zajmuje dostępną przestrzeń */
+}
+
+.active-keywords-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    background-color: #f8f9fa;
+    min-height: 40px; /* Minimalna wysokość, nawet jeśli puste */
+    align-items: center; /* Wyśrodkowanie tagów pionowo */
+}
+
+.active-keywords-container .placeholder-text {
+    color: #888;
+    font-style: italic;
+}
+
+
+/* --- Specyficzne style dla sekcji opcji i zarządzania (teraz pełna szerokość) --- */
+.filter-section.options-section { /* Dodajemy klasę .filter-section aby utrzymać ogólne style */
+    flex-basis: 100%; /* Rozciągnij na całą szerokość */
+    max-width: 100%; /* Upewnij się, że nie wyjdzie poza */
+    /* Jeśli chcesz usunąć padding z tej sekcji, aby była bardziej "płaska", możesz to zrobić tutaj */
+    /* padding: 15px; */ /* To jest już w .filter-section, więc nie trzeba powtarzać */
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px; /* Odstęp między checkboxem a przyciskami */
+}
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: normal; /* Normalna waga dla tekstu checkboxa */
+    margin-bottom: 0;
+}
+.checkbox-group input[type="checkbox"] {
+    min-width: 16px;
+    min-height: 16px;
+}
+
+.filter-management-group {
+    display: flex;
+    flex-wrap: wrap; /* Pozwala przyciskom zawijać się */
+    gap: 10px;
+    margin-top: auto; /* Przykleja do dołu, jeśli sekcja jest wyższa */
+}
+
+.filter-management-group button,
+/* Usunęliśmy select z HTML, więc ta reguła nie jest już potrzebna */
+/* .filter-management-group select { */
+/* flex: 1 1 auto; */
+/* min-width: 120px; */
+/* } */
+
+/* --- Inputy (ogólne style) --- */
+input[type="text"] {
     padding: 10px 15px;
     border: 1px solid #e0e0e0;
     border-radius: 5px;
     font-size: 1em;
+    height: 40px; /* Stała wysokość */
+    box-sizing: border-box;
 }
 
-.filters-container button#resetFilters {
-    background-color: #dc3545; /* Czerwony dla resetowania */
+
+/* --- Custom Select (rozszerzone style) --- */
+.custom-select-container {
+    position: relative;
+    width: 100%; /* Rozciągnij na całą szerokość rodzica */
+    margin-bottom: 5px; /* Mały odstęp pod selectem */
 }
 
-.filters-container button#resetFilters:hover {
-    background-color: #c82333;
+.custom-select-selected-items {
+    padding: 10px 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    font-size: 1em;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 40px; /* Wysokość dopasowana do inputów i przycisków */
+    box-sizing: border-box; /* Padding wliczony w wysokość */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
+
+.custom-select-selected-items::after {
+    content: '▼';
+    font-size: 0.8em;
+    color: #666;
+    margin-left: 10px;
+}
+
+.custom-select-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    z-index: 1000;
+    max-height: 250px;
+    overflow-y: auto;
+    padding: 5px 0;
+}
+
+.custom-select-dropdown.show {
+    display: block;
+}
+
+.custom-select-option {
+    display: flex;
+    align-items: center;
+    padding: 8px 15px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.custom-select-option:hover {
+    background-color: #f0f0f0;
+}
+
+.custom-select-option input[type="checkbox"] {
+    margin-right: 10px;
+    min-width: 16px;
+    min-height: 16px;
+}
+
+.custom-select-option input[type="checkbox"]:checked + span {
+    font-weight: bold;
+    color: #007bff;
+}
+
+/* --- Keyword Tags --- */
+.keyword-tag {
+    background-color: #007bff;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    font-size: 0.9em;
+    white-space: nowrap;
+    flex-shrink: 0; /* Zapobiega kurczeniu się tagów */
+}
+
+.keyword-tag .remove-keyword {
+    background-color: rgba(255, 255, 255, 0.3);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 8px;
+    cursor: pointer;
+    font-size: 0.8em;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+}
+
+.keyword-tag .remove-keyword:hover {
+    background-color: rgba(255, 255, 255, 0.5);
+}
+
 
 /* --- Komunikat ładowania --- */
 #loadingMessage {
@@ -129,8 +365,8 @@ main {
     padding: 20px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
-    width: 100%; /* Karta zajmuje całą dostępną szerokość */
-    box-sizing: border-box; /* Padding i border wliczane w szerokość */
+    width: 100%;
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
 }
@@ -143,7 +379,7 @@ main {
 .article-card h3 {
     margin-top: 0;
     margin-bottom: 8px;
-    font-size: 1.3em; /* Większy tytuł */
+    font-size: 1.3em;
     color: #2c3e50;
     line-height: 1.3;
 }
@@ -163,12 +399,12 @@ main {
 
 .article-card a {
     display: inline-block;
-    background-color: #28a745; /* Zielony przycisk akcji */
+    background-color: #28a745;
     color: white;
     padding: 10px 15px;
     border-radius: 5px;
     text-decoration: none;
-    align-self: flex-start; /* Przykleja przycisk do lewej na dole karty */
+    align-self: flex-start;
     transition: background-color 0.3s ease;
 }
 
@@ -180,175 +416,113 @@ main {
 footer {
     text-align: center;
     padding: 20px;
-    margin-top: auto; /* Przykleja stopkę do dołu, jeśli treści jest mało */
+    margin-top: auto;
     background-color: #2c3e50;
     color: white;
     font-size: 0.9em;
     box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
 }
 
-/* --- Style dla ulubionych filtrów --- */
-#favoriteFiltersSelect {
-    flex: 1; /* Rozciągnij, podobnie jak inne inputy */
-    min-width: 180px; /* Minimalna szerokość */
-    padding: 10px 15px;
-    border: 1px solid #e0e0e0;
-    border-radius: 5px;
-    font-size: 1em;
-    background-color: #f8f9fa; /* Jasne tło */
+
+/* --- Przeczytane artykuły --- */
+.article-card.read {
+    background-color: #e9ecef;
+    border-color: #d8dee3;
+    opacity: 0.8;
 }
 
-/* Styl dla przycisku zapisu filtrów */
-button#saveFilterButton {
-    background-color: #20c997; /* Jakiś inny kolor, np. zielony */
+.article-card.read h3,
+.article-card.read .source,
+.article-card.read .pub-date {
+    color: #6c757d;
 }
 
-button#saveFilterButton:hover {
-    background-color: #17a2b8; /* Ciemniejszy zielony */
+.article-card.read a {
+    background-color: #6c757d;
+    cursor: default;
 }
 
-/* Styl dla przycisku usuwania filtrów */
-button#deleteSelectedFilterButton {
-    background-color: #fd7e14; /* Kolor ostrzegawczy, np. pomarańczowy */
-}
-
-button#deleteSelectedFilterButton:hover {
-    background-color: #e66c00;
-}
-
-/* --- NOWE STYLE DLA CUSTOM-SELECT (WIELOKROTNY WYBÓR) --- */
-.custom-select-container {
-    position: relative;
-    flex: 1; /* Rozciągnij, podobnie jak inne inputy */
-    min-width: 180px; /* Minimalna szerokość */
-}
-
-.custom-select-selected-items {
-    padding: 10px 15px;
-    border: 1px solid #e0e0e0;
-    border-radius: 5px;
-    font-size: 1em;
-    background-color: #f8f9fa;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    height: 42px; /* Wysokość dopasowana do inputów i przycisków */
-    box-sizing: border-box; /* Padding wliczony w wysokość */
-    white-space: nowrap; /* Zapobiega zawijaniu tekstu */
-    overflow: hidden;    /* Ukrywa tekst, który wykracza poza element */
-    text-overflow: ellipsis; /* Dodaje "..." na końcu ukrytego tekstu */
-    min-width: 150px; /* lub dopasuj do swoich potrzeb */
-}
-
-.custom-select-selected-items::after {
-    content: '▼'; /* Strzałka w dół */
+.article-card.read .read-info {
     font-size: 0.8em;
-    color: #666;
-    margin-left: 10px;
+    color: #888;
+    margin-top: 10px;
+    font-style: italic;
 }
 
-.custom-select-dropdown {
-    display: none; /* Domyślnie ukryty */
-    position: absolute;
-    top: 100%; /* Poniżej głównego pola */
-    left: 0;
-    right: 0;
-    background-color: #ffffff;
-    border: 1px solid #e0e0e0;
-    border-radius: 5px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    z-index: 1000; /* Upewnij się, że jest na wierzchu */
-    max-height: 250px; /* Maksymalna wysokość rozwijanej listy */
-    overflow-y: auto; /* Przewijanie, jeśli opcji jest dużo */
-    padding: 5px 0;
+/* Specyficzne dla custom-select ulubionych filtrów */
+.favorite-filters-custom-select {
+    flex: 1 1 auto; /* Pozwala na rozciąganie/kurczenie */
+    min-width: 120px; /* Minimalna szerokość */
 }
 
-.custom-select-dropdown.show {
-    display: block; /* Pokaż, gdy aktywny */
-}
-
-.custom-select-option {
+/* Styl dla opcji w dropdownie ulubionych filtrów (teraz z "X") */
+.favorite-filters-option {
     display: flex;
+    justify-content: space-between; /* Rozłożenie elementów */
     align-items: center;
     padding: 8px 15px;
     cursor: pointer;
     transition: background-color 0.2s ease;
 }
 
-.custom-select-option:hover {
+.favorite-filters-option:hover {
     background-color: #f0f0f0;
 }
 
-.custom-select-option input[type="checkbox"] {
-    margin-right: 10px;
-    min-width: 16px; /* Zapewnij widoczność checkboxa */
-    min-height: 16px;
+.favorite-filters-option .filter-name {
+    flex-grow: 1; /* Nazwa filtru zajmuje większość miejsca */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-/* Style dla zaznaczonej opcji (wizualnie) */
-.custom-select-option input[type="checkbox"]:checked + span {
-    font-weight: bold;
-    color: #007bff; /* Kolor zaznaczonego tekstu */
-}
-
-/* --- NOWE STYLE DLA AKTYWNYCH SŁÓW KLUCZOWYCH --- */
-.active-keywords-container {
-    display: flex;
-    flex-wrap: wrap; /* Pozwala tagom zawijać się do nowej linii */
-    gap: 8px; /* Odstęp między tagami */
-    /* margin-top: 10px; */ /* Usuwamy, bo filters-container ma już gap */
-    padding: 5px;
-    border: 1px solid #e0e0e0;
-    border-radius: 5px;
-    background-color: #f8f9fa;
-    min-height: 40px; /* Minimalna wysokość, nawet jeśli nie ma tagów */
-    align-items: center; /* Wyśrodkowanie tagów w pionie */
-    width: 100%; /* Rozciągnij na całą szerokość rodzica */
-    box-sizing: border-box; /* Padding i border wliczane w szerokość */
-}
-
-.keyword-tag {
-    background-color: #007bff; /* Kolor tła tagu */
-    color: white;
-    padding: 6px 10px;
-    border-radius: 20px; /* Zaokrąglone rogi dla wyglądu "tagu" */
-    display: flex;
-    align-items: center;
-    font-size: 0.9em;
-    white-space: nowrap; /* Zapobiega zawijaniu tekstu w tagu */
-}
-
-.keyword-tag .remove-keyword {
-    background-color: rgba(255, 255, 255, 0.3); /* Lekko przezroczyste tło dla X */
+.favorite-filters-option .delete-filter-x {
+    background-color: #dc3545; /* Kolor czerwony */
     color: white;
     border: none;
-    border-radius: 50%; /* Okrągły przycisk X */
-    width: 20px;
-    height: 20px;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-left: 8px;
-    cursor: pointer;
     font-size: 0.8em;
     font-weight: bold;
-    transition: background-color 0.2s ease;
+    cursor: pointer;
+    margin-left: 10px; /* Odstęp od nazwy filtru */
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    flex-shrink: 0; /* Nie kurczy się */
 }
 
-.keyword-tag .remove-keyword:hover {
-    background-color: rgba(255, 255, 255, 0.5);
+.favorite-filters-option .delete-filter-x:hover {
+    background-color: #c82333;
+    transform: scale(1.1);
 }
-
-/* Dostosowanie przycisku "Dodaj słowo" */
-button#addKeywordButton {
-    flex-shrink: 0; /* Zapobiega zmniejszaniu się przycisku */
-    padding: 10px 15px; /* Dopasuj padding do innych przycisków/inputów */
-}
-
 
 /* --- Responsywność --- */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
+    .filters-container {
+        /* flex-direction: column; */ /* Usunięto tę linię, aby umożliwić poziome zawijanie */
+        align-items: stretch;
+    }
+
+    .top-filters-row {
+        flex-direction: column; /* Wąskie ekrany: sekcje w górnym rzędzie układaj pionowo */
+        align-items: stretch;
+    }
+
+    .filter-section {
+        min-width: unset; /* Usuń minimalną szerokość */
+        flex-basis: auto; /* Pozwól na automatyczne dopasowanie szerokości */
+        width: 100%; /* Zajmij całą dostępną szerokość */
+    }
+    
+    .filter-management-group button,
+    .filter-management-group select { /* Ta reguła jest nadal tutaj, ale select już nie istnieje */
+        width: 100%; /* Przyciski i select na całą szerokość */
+        min-width: unset;
+    }
+
     header {
         flex-direction: column;
         text-align: center;
@@ -359,28 +533,6 @@ button#addKeywordButton {
     }
     header button {
         width: 100%;
-    }
-    
-    .filters-container {
-        /* Już ustawione na column, więc nie trzeba zmieniać */
-        /* flex-direction: column; */
-        gap: 10px;
-    }
-
-    .filters-container > div:first-child { /* Kontener inputa i przycisku */
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .filters-container input[type="text"],
-    .filters-container .custom-select-container, /* Nowa reguła dla custom-select */
-    .filters-container #favoriteFiltersSelect,
-    .filters-container button,
-    button#addKeywordButton, /* Dodajemy nowy przycisk */
-    .active-keywords-container /* Dodajemy nowy kontener słów kluczowych */
-    {
-        min-width: unset; /* Resetuje min-width */
-        width: 100%; /* Pełna szerokość na małych ekranach */
     }
 
     main {

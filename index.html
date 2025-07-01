@@ -1,48 +1,78 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-TPQ6ZZKB');</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Czytnik RSS</title>
+    <title>Czytnik Wiadomości</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TPQ6ZZKB"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <header>
-        <h1>Twój Czytnik RSS</h1>
-        <button id="refreshButton">Odśwież newsy</button>
+        <h1>Czytnik Wiadomości</h1>
+        <button id="refreshButton" class="action-button primary-button">Odśwież Artykuły</button>
     </header>
 
     <main>
         <div class="filters-container">
-            <div style="display: flex; gap: 10px; width: 100%;">
-                <input type="text" id="searchTerm" placeholder="Wyszukaj artykuły po tytule...">
-                <button id="addKeywordButton">Dodaj słowo</button>
-            </div>
-            <div id="activeKeywordsContainer" class="active-keywords-container">
-                </div>
-            <div class="custom-select-container">
-                <div id="selectedSourcesDisplay" class="custom-select-selected-items">
-                    Wszystkie źródła
-                </div>
-                <div id="sourceOptionsDropdown" class="custom-select-dropdown">
+            <div class="top-filters-row">
+                <div class="filter-section source-filter-section">
+                    <label for="selectedSourcesDisplay">Filtruj po źródle:</label>
+                    <div class="custom-select-container">
+                        <div class="custom-select-selected-items" id="selectedSourcesDisplay">Wszystkie źródła</div>
+                        <div class="custom-select-dropdown" id="sourceDropdown">
+                            </div>
                     </div>
+                    <button id="clearSourceFilterButton" class="action-button secondary-button">Usuń filtr źródła</button>
+                </div>
+
+                <div class="filter-section keyword-filter-section">
+                    <label for="keywordInput">Szukaj po słowie kluczowym:</label>
+                    <div class="keyword-input-group">
+                        <input type="text" id="keywordInput" placeholder="Wpisz słowo kluczowe">
+                        <button id="addKeywordButton" class="action-button">Dodaj</button>
+                    </div>
+                    <div class="active-keywords-container" id="activeKeywordsContainer">
+                        <span class="placeholder-text">Brak aktywnych słów kluczowych.</span>
+                    </div>
+                </div>
             </div>
 
-            <button id="saveFilterButton" title="Zapisz bieżące filtry jako ulubione">Zapisz filtry</button>
-            <select id="favoriteFiltersSelect">
-                <option value="">Wczytaj ulubione filtry</option>
-            </select>
-            <button id="deleteSelectedFilterButton" title="Usuń zaznaczony ulubiony filtr">Usuń wybrany filtr</button>
-            <button id="resetFilters">Resetuj filtry</button>
+            <div class="filter-section options-section full-width-section">
+                <div class="checkbox-group">
+                    <label>
+                        <input type="checkbox" id="showReadArticles">
+                        Pokaż tylko przeczytane
+                    </label>
+                </div>
+                
+                <div class="filter-management-group">
+                    <button id="saveFilterButton" class="action-button primary-button">Zapisz filtry</button>
+                    
+                    <div class="custom-select-container favorite-filters-custom-select" id="favoriteFiltersCustomSelectContainer">
+                        <div class="custom-select-selected-items" id="selectedFavoriteFilterDisplay">Wczytaj ulubione filtry</div>
+                        <div class="custom-select-dropdown" id="favoriteFiltersDropdown">
+                            </div>
+                    </div>
+                    <button id="resetFilters" class="action-button warning-button">Resetuj filtry</button>
+                    <button id="clearLocalStorageButton" class="action-button danger-button">Wyczyść pamięć</button>
+                </div>
+            </div>
         </div>
 
-        <p id="loadingMessage">Pobieram newsy...</p>
+        <div id="loadingMessage">Ładowanie newsów...</div>
         <div id="articlesContainer">
             </div>
     </main>
 
     <footer>
-        <p>&copy; 2025 Twój Czytnik RSS. Wszystkie prawa zastrzeżone.</p>
+        <p>&copy; 2024 Czytnik Wiadomości. Wszystkie prawa zastrzeżone.</p>
     </footer>
 
     <script src="script.js"></script>
