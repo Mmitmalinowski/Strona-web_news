@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -72,5 +71,22 @@
     </footer>
 
     <script src="script.js"></script>
+
+    <!-- Przycisk zgłaszania błędu -->
+<button id="reportBugButton" style="position: fixed; bottom: 24px; right: 24px; z-index: 1000; background: #e74c3c; color: #fff; border: none; border-radius: 50%; width: 56px; height: 56px; font-size: 24px; cursor: pointer;">&#9888;</button>
+
+<!-- Modal z formularzem -->
+<div id="bugReportModal" style="display:none; position:fixed; bottom:80px; right:24px; background:#fff; border:1px solid #ccc; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.2); padding:20px; z-index:1001; width:300px;">
+    <h3>Zgłoś błąd</h3>
+    <form id="bugReportForm" action="https://formspree.io/f/xkgbepde" method="POST">
+        <label for="bugMessage">Opisz problem:</label>
+        <textarea id="bugMessage" name="message" required style="width:100%; min-height:60px;"></textarea>
+        <label for="bugEmail">Twój e-mail (opcjonalnie):</label>
+        <input type="email" id="bugEmail" name="email" style="width:100%;">
+        <button type="submit" class="action-button primary-button" style="margin-top:10px;">Wyślij</button>
+        <button type="button" id="closeBugModal" class="action-button secondary-button" style="margin-top:10px;">Anuluj</button>
+    </form>
+    <div id="bugReportThanks" style="display:none; color:green; margin-top:10px;">Dziękujemy za zgłoszenie!</div>
+</div>
 </body>
 </html>

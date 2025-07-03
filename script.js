@@ -1,4 +1,3 @@
-
 // script.js - Wersja z wieloma słowami kluczowymi, custom-select i oznaczaniem przeczytanych
 // Zmiany: Customowy rozwijany select z wielokrotnym wyborem,
 // możliwość dodawania wielu słów kluczowych do filtrowania,
@@ -271,7 +270,6 @@ function clearSourceFilter() {
     applyFilters();
 }
 
-
 // --- Główna Logika Aplikacji ---
 
 async function fetchAndParseFeed(sourceName, feedUrl) {
@@ -527,3 +525,42 @@ document.addEventListener('click', (event) => {
 
 refreshButton.addEventListener('click', fetchAllNews); 
 showReadArticlesCheckbox.addEventListener('change', applyFilters);
+
+// Obsługa modala zgłaszania błędu
+document.addEventListener('DOMContentLoaded', function() {
+    const reportBugButton = document.getElementById('reportBugButton');
+    const bugReportModal = document.getElementById('bugReportModal');
+    const closeBugModal = document.getElementById('closeBugModal');
+    const bugReportForm = document.getElementById('bugReportForm');
+    const bugReportThanks = document.getElementById('bugReportThanks');
+
+    if (reportBugButton && bugReportModal && closeBugModal && bugReportForm && bugReportThanks) {
+        reportBugButton.onclick = function() {
+            bugReportModal.style.display = 'block';
+        };
+        closeBugModal.onclick = function() {
+            bugReportModal.style.display = 'none';
+            bugReportForm.reset();
+            bugReportThanks.style.display = 'none';
+        };
+        bugReportForm.onsubmit = function(e) {
+            e.preventDefault();
+            fetch(bugReportForm.action, {
+                method: 'POST',
+                body: new FormData(bugReportForm),
+                headers: { 'Accept': 'application/json' }
+            }).then(response => {
+                bugReportForm.reset();
+                bugReportThanks.style.display = 'block';
+                setTimeout(() => {
+                    bugReportModal.style.display = 'none';
+                    bugReportThanks.style.display = 'none';
+                }, 2000);
+            }).catch(() => {
+                bugReportThanks.style.display = 'block';
+                bugReportThanks.style.color = 'red';
+                bugReportThanks.textContent = 'Wystąpił błąd podczas wysyłania.';
+            });
+        };
+    }
+});
