@@ -6,7 +6,7 @@
 // filtrowanie po przeczytanych/nieprzeczytanych.
 
 // Publiczne proxy CORS
-const CORS_PROXY_URL = "https://corsproxy.io/?";
+const CORS_PROXY_URL = "https://api.allorigins.win/raw?url=";
 
 // Lista źródeł RSS
 const FEEDS = {
@@ -354,9 +354,10 @@ async function fetchAllNews() {
 function applyFilters() {
     const termsToMatch = activeKeywords.map(term => term.toLowerCase());
     const selectedSources = currentSelectedSources;
-    const showRead = showReadArticlesCheckbox.checked;
+    const showRead = showReadArticlesCheckbox.checked; // Czy checkbox "Pokaż tylko przeczytane" jest zaznaczony
 
     const filtered = allArticles.filter(article => {
+        // 1. Sprawdź zgodność ze słowami kluczowymi
         let matchesSearchTerm = true;
         if (termsToMatch.length > 0) {
             matchesSearchTerm = termsToMatch.some(term => article.title.toLowerCase().includes(term));
@@ -364,15 +365,21 @@ function applyFilters() {
             matchesSearchTerm = article.title.toLowerCase().includes(keywordInput.value.toLowerCase().trim());
         }
         
+        // 2. Sprawdź zgodność ze źródłami
         const matchesSource = selectedSources.includes("all") || selectedSources.includes(article.source);
         
+        // 3. Sprawdź status "przeczytano"
         const isArticleRead = readArticles[article.link];
 
-        // Logika filtrowania dla "Pokaż tylko przeczytane"
+        // Nowa logika filtrowania:
+        // Jeśli "Pokaż tylko przeczytane" jest zaznaczone, pokaż tylko artykuły, które są przeczytane
         if (showRead) {
-            return matchesSearchTerm && matchesSource && isArticleRead; // Jeśli zaznaczono "pokaż przeczytane", pokaż tylko przeczytane
-        } else {
-            return matchesSearchTerm && matchesSource && !isArticleRead; // Jeśli NIE zaznaczono, pokaż tylko NIEPRZECZYTANE
+            return matchesSearchTerm && matchesSource && isArticleRead;
+        } 
+        // Jeśli "Pokaż tylko przeczytane" NIE jest zaznaczone, pokaż WSZYSTKIE artykuły (przeczytane i nieprzeczytane),
+        // które pasują do pozostałych filtrów.
+        else {
+            return matchesSearchTerm && matchesSource; // Zmieniono z '!isArticleRead' na samo 'true' (lub pominięcie sprawdzenia)
         }
     });
     displayArticles(filtered);

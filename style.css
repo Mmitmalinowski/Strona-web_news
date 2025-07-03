@@ -105,6 +105,13 @@ main {
     display: flex;
     flex-direction: column; /* Ułóż główne rzędy w kolumnę */
     gap: 20px; /* Odstęp między rzędami */
+    
+    /* ZMODYFIKOWANE REGUŁY: Stała szerokość dla kontenera filtrów */
+    width: 100%; /* Zawsze zajmuje 100% dostępnej szerokości */
+    max-width: 960px; /* Ustal maksymalną szerokość dla kontenera filtrów (1000px main - 2*20px padding main) */
+    box-sizing: border-box; /* Padding wliczony w szerokość */
+    flex-shrink: 0; /* Ważne: Zapobiega kurczeniu się tego kontenera */
+    flex-grow: 0; /* Ważne: Zapobiega rozciąganiu się tego kontenera */
 }
 
 /* Nowe style dla górnego rzędu filtrów */
@@ -184,9 +191,13 @@ main {
 /* --- Specyficzne style dla sekcji opcji i zarządzania (teraz pełna szerokość) --- */
 .filter-section.options-section { /* Dodajemy klasę .filter-section aby utrzymać ogólne style */
     flex-basis: 100%; /* Rozciągnij na całą szerokość */
-    max-width: 100%; /* Upewnij się, że nie wyjdzie poza */
-    /* Jeśli chcesz usunąć padding z tej sekcji, aby była bardziej "płaska", możesz to zrobić tutaj */
-    /* padding: 15px; */ /* To jest już w .filter-section, więc nie trzeba powtarzać */
+    
+    /* ZMODYFIKOWANE REGUŁY: Stabilizacja szerokości, poprawka */
+    /* Ustawienie szerokości wewnątrz filters-container, aby była stabilna */
+    /* Szerokość powinna być nieco mniejsza niż filters-container, by zmieścić padding */
+    width: auto; /* Pozwól flexboxowi dostosować, ale z min-width */
+    min-width: 380px; /* Nadal minimalna szerokość dla tej konkretnej sekcji */
+    flex-shrink: 0; /* Zapewnia, że element nie będzie się kurczył poniżej min-width */
 }
 
 .checkbox-group {
@@ -200,6 +211,7 @@ main {
     gap: 8px;
     font-weight: normal; /* Normalna waga dla tekstu checkboxa */
     margin-bottom: 0;
+    white-space: nowrap; /* Zapobiega łamaniu tekstu na wiele linii */
 }
 .checkbox-group input[type="checkbox"] {
     min-width: 16px;
@@ -211,14 +223,14 @@ main {
     flex-wrap: wrap; /* Pozwala przyciskom zawijać się */
     gap: 10px;
     margin-top: auto; /* Przykleja do dołu, jeśli sekcja jest wyższa */
+    align-items: center; /* Wyśrodkowuje elementy pionowo w grupie */
 }
 
 .filter-management-group button,
-/* Usunęliśmy select z HTML, więc ta reguła nie jest już potrzebna */
-/* .filter-management-group select { */
-/* flex: 1 1 auto; */
-/* min-width: 120px; */
-/* } */
+.filter-management-group .custom-select-container {
+    flex-shrink: 0; /* To jest ważne, aby zapobiec kurczeniu się przycisków/selecta i rozpychaniu się */
+}
+
 
 /* --- Inputy (ogólne style) --- */
 input[type="text"] {
@@ -354,6 +366,12 @@ input[type="text"] {
     display: flex;
     flex-direction: column; /* Artykuły jeden pod drugim */
     gap: 15px; /* Odstęp między artykułami */
+    /* NOWE REGUŁY: Kontrolowanie szerokości kontenera artykułów */
+    width: 100%; /* Domyślnie zajmuje 100% dostępnej przestrzeni rodzica (main) */
+    max-width: 960px; /* Ogranicz szerokość tak jak filters-container */
+    box-sizing: border-box; /* Padding wliczony w szerokość */
+    flex-shrink: 0; /* Ważne: Zapobiega kurczeniu się tego kontenera */
+    flex-grow: 0; /* Ważne: Zapobiega rozciąganiu się tego kontenera */
 }
 
 /* --- Karta artykułu --- */
@@ -364,7 +382,7 @@ input[type="text"] {
     padding: 20px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
-    width: 100%;
+    width: 100%; /* Karta artykułu zawsze zajmuje 100% dostępnej przestrzeni swojego rodzica (#articlesContainer) */
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -381,6 +399,9 @@ input[type="text"] {
     font-size: 1.3em;
     color: #2c3e50;
     line-height: 1.3;
+    word-break: break-word; /* Zapewnia łamanie długich słów */
+    overflow-wrap: break-word; /* Ulepszona wersja word-break */
+    /* Usunięto white-space: nowrap; - chcemy, aby tytuły się łamały */
 }
 
 .article-card .source {
@@ -503,6 +524,7 @@ footer {
     .filters-container {
         /* flex-direction: column; */ /* Usunięto tę linię, aby umożliwić poziome zawijanie */
         align-items: stretch;
+        max-width: 100%; /* Na małych ekranach mogą zajmować 100% szerokości */
     }
 
     .top-filters-row {
@@ -516,6 +538,12 @@ footer {
         width: 100%; /* Zajmij całą dostępną szerokość */
     }
     
+    /* NOWA REGUŁA DLA ODPOWIEDNIEJ RESPONSIVEJ SZEROKOŚCI SEKCJI OPCJI */
+    .filter-section.options-section {
+        min-width: unset; /* Usuń minimalną szerokość na małych ekranach */
+        width: 100%; /* I ustaw pełną szerokość */
+    }
+
     .filter-management-group button,
     .filter-management-group select { /* Ta reguła jest nadal tutaj, ale select już nie istnieje */
         width: 100%; /* Przyciski i select na całą szerokość */
@@ -544,5 +572,9 @@ footer {
 
     .article-card h3 {
         font-size: 1.1em;
+    }
+
+    #articlesContainer {
+        max-width: 100%; /* Na małych ekranach też 100% */
     }
 }
