@@ -38,28 +38,30 @@
                 </div>
             </div>
 
-            <div class="filter-section options-section full-width-section">
-                <div class="checkbox-group">
-                    <label>
-                        <input type="checkbox" id="showReadArticles">
-                        Pokaż tylko przeczytane
-                    </label>
-                </div>
-                
-                <div class="filter-management-group">
-                    <button id="saveFilterButton" class="action-button primary-button">Zapisz filtry</button>
-                    
-                    <div class="custom-select-container favorite-filters-custom-select" id="favoriteFiltersCustomSelectContainer">
-                        <div class="custom-select-selected-items" id="selectedFavoriteFilterDisplay">Wczytaj ulubione filtry</div>
-                        <div class="custom-select-dropdown" id="favoriteFiltersDropdown">
-                            </div>
-                    </div>
-                    <button id="resetFilters" class="action-button warning-button">Resetuj filtry</button>
-                    <button id="clearLocalStorageButton" class="action-button danger-button">Wyczyść pamięć</button>
-                </div>
-            </div>
+<div class="filter-section options-section full-width-section">
+    <div class="filter-row filter-row-checkbox">
+        <div class="checkbox-group">
+            <label>
+                <input type="checkbox" id="showReadArticles">
+                Pokaż tylko przeczytane
+            </label>
         </div>
+    </div>
+    
+    <div class="filter-row filter-row-save-load">
+        <button id="saveFilterButton" class="action-button primary-button">Zapisz filtry</button>
+        <div class="custom-select-container favorite-filters-custom-select" id="favoriteFiltersCustomSelectContainer">
+            <div class="custom-select-selected-items" id="selectedFavoriteFilterDisplay">Wczytaj ulubione filtry</div>
+            <div class="custom-select-dropdown" id="favoriteFiltersDropdown">
+                </div>
+        </div>
+    </div>
 
+    <div class="filter-row filter-row-reset-clear">
+        <button id="resetFilters" class="action-button warning-button">Resetuj filtry</button>
+        <button id="clearLocalStorageButton" class="action-button danger-button">Wyczyść pamięć</button>
+    </div>
+</div>
         <div id="loadingMessage">Ładowanie newsów...</div>
         <div id="articlesContainer">
             </div>
